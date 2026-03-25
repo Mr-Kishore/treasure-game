@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AnimatedBackground from '@/components/AnimatedBackground';
 import { teacherLogin, isTeacherLoggedIn } from '@/lib/teacherStorage';
+import { getStoredStudent } from '@/lib/api';
 import { playClickSound } from '@/lib/sounds';
 import { ArrowLeft, Lock, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +39,8 @@ const TeacherLogin: React.FC = () => {
 
   const handleBack = () => {
     playClickSound();
-    navigate('/');
+    const student = getStoredStudent();
+    navigate(student ? '/home' : '/');
   };
 
   return (

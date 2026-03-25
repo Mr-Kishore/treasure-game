@@ -1,3 +1,6 @@
+// teacherStorage.ts — DB-backed via Express API
+import * as api from './api';
+
 export interface TeacherQuestion {
   id: string;
   question: string;
@@ -13,44 +16,41 @@ export interface QuestionSet {
   createdAt: number;
 }
 
-const STORAGE_KEY = 'math_adventure_question_sets';
 const TEACHER_AUTH_KEY = 'math_adventure_teacher_auth';
 
-export const getQuestionSets = (): QuestionSet[] => {
+// ── Question Sets (DB-backed) ────────────────────────────────────────────────
+
+export const getQuestionSets = async (): Promise<QuestionSet[]> => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const { sets } = await api.getQuestionSets();
+    return sets.map((s) => ({ id: s.id, name: s.name, questions: s.questions, createdAt: s.created_at }));
   } catch {
     return [];
   }
 };
 
-export const saveQuestionSet = (questionSet: QuestionSet): void => {
-  const sets = getQuestionSets();
-  const existingIndex = sets.findIndex(s => s.id === questionSet.id);
-  if (existingIndex >= 0) {
-    sets[existingIndex] = questionSet;
-  } else {
-    sets.push(questionSet);
+export const saveQuestionSet = async (questionSet: QuestionSet): Promise<void> => {
+  await api.saveQuestionSet({ id: questionSet.id, name: questionSet.name, questions: questionSet.questions, createdAt: questionSet.createdAt });
+};
+
+export const deleteQuestionSet = async (id: string): Promise<void> => {
+  await api.deleteQuestionSet(id);
+};
+
+export const getQuestionSetById = async (id: string): Promise<QuestionSet | undefined> => {
+  try {
+    const set = await api.getQuestionSetById(id);
+    return { id: set.id, name: set.name, questions: set.questions, createdAt: set.created_at };
+  } catch {
+    return undefined;
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
 };
 
-export const deleteQuestionSet = (id: string): void => {
-  const sets = getQuestionSets().filter(s => s.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sets));
-};
+// ── Teacher Auth (localStorage — simple password) ────────────────────────────
 
-export const getQuestionSetById = (id: string): QuestionSet | undefined => {
-  return getQuestionSets().find(s => s.id === id);
-};
-
-export const isTeacherLoggedIn = (): boolean => {
-  return localStorage.getItem(TEACHER_AUTH_KEY) === 'true';
-};
+export const isTeacherLoggedIn = (): boolean => localStorage.getItem(TEACHER_AUTH_KEY) === 'true';
 
 export const teacherLogin = (password: string): boolean => {
-  // Simple password for demo - in production use proper auth
   if (password === 'teacher123') {
     localStorage.setItem(TEACHER_AUTH_KEY, 'true');
     return true;
@@ -58,10 +58,6 @@ export const teacherLogin = (password: string): boolean => {
   return false;
 };
 
-export const teacherLogout = (): void => {
-  localStorage.removeItem(TEACHER_AUTH_KEY);
-};
+export const teacherLogout = (): void => { localStorage.removeItem(TEACHER_AUTH_KEY); };
 
-export const generateId = (): string => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
+export const generateId = (): string => Date.now().toString(36) + Math.random().toString(36).substring(2);

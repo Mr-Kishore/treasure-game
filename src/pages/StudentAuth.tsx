@@ -1,35 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AnimatedBackground from '@/components/AnimatedBackground';
-import { registerStudent, loginStudent, setSession, getStoredStudent } from '@/lib/api';
+import { registerStudent, loginStudent, setSession } from '@/lib/api';
 import { playClickSound, playSuccessSound, playErrorSound } from '@/lib/sounds';
-import { GraduationCap, LogIn, UserPlus, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { ArrowLeft, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 type Mode = 'login' | 'signup';
 
-const Index: React.FC = () => {
+const StudentAuth: React.FC = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [animateIn, setAnimateIn] = useState(false);
 
+  // form fields
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-
-  useEffect(() => {
-    const student = getStoredStudent();
-    if (student) {
-      navigate('/home');
-      return;
-    }
-    setTimeout(() => setAnimateIn(true), 50);
-  }, [navigate]);
 
   const switchMode = (m: Mode) => {
     playClickSound();
@@ -68,7 +59,7 @@ const Index: React.FC = () => {
       }
       playSuccessSound();
       setSession(res.token, res.student);
-      navigate('/home');
+      navigate('/levels');
     } catch (err: unknown) {
       playErrorSound();
       setError(err instanceof Error ? err.message : 'Something went wrong.');
@@ -81,91 +72,70 @@ const Index: React.FC = () => {
     <main className="relative min-h-screen overflow-hidden">
       <AnimatedBackground />
 
-      {/* Teacher Mode button — top right */}
-      <div className="absolute top-4 right-4 z-20">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
+        {/* Back button */}
         <Button
           variant="outline"
-          onClick={() => { playClickSound(); navigate('/teacher'); }}
-          className="font-fredoka bg-card/80 backdrop-blur-sm border-2 hover:bg-card"
+          onClick={() => { playClickSound(); navigate('/'); }}
+          className="absolute top-4 left-4 font-fredoka"
         >
-          <GraduationCap className="w-5 h-5 mr-2" />
-          Teacher Mode
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Home
         </Button>
-      </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-8">
-
-        {/* Logo / Branding */}
-        <div
-          className="text-center mb-8 transition-all duration-700"
-          style={{
-            opacity: animateIn ? 1 : 0,
-            transform: animateIn ? 'translateY(0)' : 'translateY(-30px)',
-          }}
-        >
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-5xl" style={{ animation: 'bounce 1s infinite' }}>🏴‍☠️</span>
-            <h1 className="text-4xl md:text-6xl font-baloo font-bold text-foreground text-shadow-fun">
-              Treasure Hunt
-            </h1>
-            <span className="text-5xl" style={{ animation: 'bounce 1s infinite 0.3s' }}>💎</span>
-          </div>
-          <p className="text-xl md:text-2xl font-fredoka font-semibold text-primary text-shadow-glow">
-            Math Adventure
-          </p>
-          <p className="text-sm md:text-base font-fredoka text-foreground/70 mt-1">
-            Sign in to start your adventure!
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-6xl font-baloo font-bold text-foreground text-shadow-fun mb-2">
+            🧒 Student Portal
+          </h1>
+          <p className="text-lg font-fredoka text-foreground/70">
+            {mode === 'login' ? 'Welcome back, adventurer!' : 'Join the adventure!'}
           </p>
         </div>
 
-        {/* Auth Card */}
-        <div
-          className="bg-card/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl w-full max-w-md border border-foreground/10 transition-all duration-700"
-          style={{
-            opacity: animateIn ? 1 : 0,
-            transform: animateIn ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.95)',
-          }}
-        >
-          {/* Mode Toggle */}
-          <div className="flex rounded-2xl overflow-hidden border-2 border-border mb-6">
+        {/* Card */}
+        <div className="bg-card/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl w-full max-w-md">
+          {/* Mode toggle */}
+          <div className="flex rounded-2xl overflow-hidden border border-border mb-6">
             <button
               onClick={() => switchMode('login')}
-              className={`flex-1 py-3 font-fredoka text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 font-fredoka text-base font-semibold transition-colors ${
                 mode === 'login'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-transparent text-muted-foreground hover:bg-muted'
               }`}
             >
-              <LogIn className="w-4 h-4" />
+              <LogIn className="inline w-4 h-4 mr-1" />
               Login
             </button>
             <button
               onClick={() => switchMode('signup')}
-              className={`flex-1 py-3 font-fredoka text-base font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 font-fredoka text-base font-semibold transition-colors ${
                 mode === 'signup'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-transparent text-muted-foreground hover:bg-muted'
               }`}
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="inline w-4 h-4 mr-1" />
               Sign Up
             </button>
           </div>
 
           <div className="space-y-4">
+            {/* Signup-only fields */}
             {mode === 'signup' && (
               <>
                 <div>
-                  <label className="block text-sm font-fredoka text-foreground mb-1 font-semibold">Your Name 👤</label>
+                  <label className="block text-sm font-fredoka text-foreground mb-1">Your Name</label>
                   <Input
-                    placeholder="e.g. Alex"
+                    placeholder="e.g. Kishore"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="font-fredoka h-12 text-base"
+                    className="font-fredoka"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-fredoka text-foreground mb-1 font-semibold">Age 🎂</label>
+                  <label className="block text-sm font-fredoka text-foreground mb-1">Age</label>
                   <Input
                     type="number"
                     placeholder="e.g. 10"
@@ -173,90 +143,86 @@ const Index: React.FC = () => {
                     max={18}
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="font-fredoka h-12 text-base"
+                    className="font-fredoka"
                   />
                 </div>
               </>
             )}
 
+            {/* Common fields */}
             <div>
-              <label className="block text-sm font-fredoka text-foreground mb-1 font-semibold">Username 🧒</label>
+              <label className="block text-sm font-fredoka text-foreground mb-1">Username</label>
               <Input
                 placeholder="Pick a cool username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                className="font-fredoka h-12 text-base"
+                className="font-fredoka"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-fredoka text-foreground mb-1 font-semibold">Password 🔑</label>
+              <label className="block text-sm font-fredoka text-foreground mb-1">Password</label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                  className="font-fredoka h-12 text-base pr-12"
+                  className="font-fredoka pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
+            {/* Error */}
             {error && (
-              <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3">
+              <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2">
                 <p className="text-destructive font-fredoka text-sm">⚠️ {error}</p>
               </div>
             )}
 
+            {/* Submit */}
             <Button
               variant="treasure"
               size="lg"
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full font-fredoka text-lg mt-2 h-14"
+              className="w-full font-fredoka text-lg mt-2"
             >
               {loading ? (
                 <span className="animate-pulse">Loading...</span>
               ) : mode === 'login' ? (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
-                  Login &amp; Play! 🎮
+                  Login & Play!
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Create Account &amp; Play! 🚀
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Create Account!
                 </>
               )}
             </Button>
           </div>
-
-          <p className="mt-5 text-center text-sm font-fredoka text-foreground/50">
-            {mode === 'login'
-              ? "New adventurer? Switch to Sign Up above!"
-              : 'Already have an account? Switch to Login above!'}
-          </p>
         </div>
 
-        {/* Bottom tagline */}
-        <p
-          className="mt-6 text-foreground/70 font-fredoka text-base text-center transition-all duration-700"
-          style={{ opacity: animateIn ? 1 : 0, transitionDelay: '300ms' }}
-        >
-          🌴 Solve math problems · Find treasures · Become a Math Champion!
+        {/* Decorative */}
+        <p className="mt-6 text-sm font-fredoka text-foreground/50 text-center">
+          {mode === 'login'
+            ? "Don't have an account? Switch to Sign Up above!"
+            : 'Already have an account? Switch to Login above!'}
         </p>
       </div>
     </main>
   );
 };
 
-export default Index;
+export default StudentAuth;
